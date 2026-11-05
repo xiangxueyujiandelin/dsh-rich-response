@@ -59,6 +59,16 @@ dsh plugin --profile web add .
 | **语义块** | GitHub Alerts（`> [!NOTE]` / `[!TIP]` / `[!WARNING]` / `[!IMPORTANT]`） | 带色提示块。模型零学习成本 —— 这个语法在训练数据里到处都是 |
 | **结构块** | `:::` 围栏 —— `summary` / `points` / `table` / `steps` / `columns` | 卡片、对比表、编号流、分栏 |
 
+宿主半区会把这套协议作为一小节追加到系统提示词末尾（约 400 字），只提示「什么场景可用、什么场景别用」，不做任何启发式改写；客户端仍然只渲染模型真正写出来的围栏，普通回复一律走宿主原生 markdown。不想要这个提示，可以给插件条目加配置：
+
+```yaml
+- insert:
+    - id: dsh-rich-response
+      name: 'dsh-rich-response'
+      config:
+        enabled: false
+```
+
 ### 设计原则：颜色 = 语义
 
 插件**刻意不**给所有东西上色。只有模型明确标记的块才染色，正文保持干净。
@@ -213,6 +223,16 @@ Two block families:
 |---|---|---|
 | **Semantic** | GitHub Alerts (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!IMPORTANT]`) | Tinted callouts. Zero learning cost for the model — this syntax is everywhere in training data. |
 | **Structural** | `:::` fences — `summary`, `points`, `table`, `steps`, `columns` | Cards, comparison tables, numbered flows, two-column layouts. |
+
+The host half appends this protocol as a ~400-character section at the end of the system prompt: it only says *when* to use the blocks and when not to, and never rewrites anything. The client half still renders only fences the model actually writes; ordinary replies keep the host's native markdown. To opt out, add config to the plugin entry:
+
+```yaml
+- insert:
+    - id: dsh-rich-response
+      name: 'dsh-rich-response'
+      config:
+        enabled: false
+```
 
 ### Design principle: color means meaning
 
