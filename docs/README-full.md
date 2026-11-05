@@ -140,7 +140,7 @@ ctx.slots.register(
 ```
 ├── src/
 │   ├── client.js              渲染器（浏览器半区）
-│   ├── index.js               宿主半区（空实现，满足 bundle 契约）
+│   ├── index.js               宿主半区（注入富渲染协议，满足 bundle 契约）
 │   ├── parser.js              协议解析器
 │   ├── parser-reference.ts    协议解析器（TS 参考实现）
 │   └── rich-response.css      样式

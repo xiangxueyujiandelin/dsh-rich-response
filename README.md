@@ -96,7 +96,7 @@ L4  完全没有标记      → 普通 markdown（宿主默认）
 npm run test:all
 ```
 
-八套测试共 197 项断言，**无需安装任何依赖**（Node 22+ 即可）：
+八套测试共 205 项断言，**无需安装任何依赖**（Node 22+ 即可）：
 
 | 套件 | 断言数 | 防什么 |
 |---|---|---|
@@ -104,8 +104,8 @@ npm run test:all
 | `semantic-test.mjs` | 22 | S 族语义块识别与字符区间（曾恒返回空） |
 | `verify-build.mjs` | 13 | 构建产物与源码漂移 |
 | `check-seam.mjs` | 87 | **宿主 API 契约跑偏**（见下） |
-| `register-seam.mjs` | 10 | 注册期崩溃 / 会话切换生命周期 |
-| `host-half-test.mjs` | 5 | 宿主半区空实现（不注入任何提示词） |
+| `register-seam.mjs` | 8 | 注册期崩溃 / 会话切换生命周期 |
+| `host-half-test.mjs` | 15 | 宿主半区协议注入（保守、可关闭、异常不外泄） |
 | `mutation-test.mjs` | 16 变异 | **自检脚本本身假绿**（见下） |
 | `render-e2e.mjs` | 36 | **回复区整片空白** + 卡片正文行内 markdown / 语义块 |
 
@@ -143,7 +143,7 @@ ctx.slots.register(
 ```
 ├── src/
 │   ├── client.js              渲染器（浏览器半区）
-│   ├── index.js               宿主半区（空实现，满足 bundle 契约）
+│   ├── index.js               宿主半区（注入富渲染协议，满足 bundle 契约）
 │   ├── parser.js              协议解析器
 │   ├── parser-reference.ts    协议解析器（TS 参考实现）
 │   └── rich-response.css      样式
@@ -251,7 +251,7 @@ No flicker, no layout jump. The renderer only needs one rule: *render markdown a
 npm run test:all
 ```
 
-Eight suites, 197 assertions, **no dependencies to install** (Node 22+ is enough):
+Eight suites, 205 assertions, **no dependencies to install** (Node 22+ is enough):
 
 | Suite | Assertions | Guards against |
 |---|---|---|
@@ -259,8 +259,8 @@ Eight suites, 197 assertions, **no dependencies to install** (Node 22+ is enough
 | `semantic-test.mjs` | 22 | semantic-block (GitHub Alerts) detection and character ranges |
 | `verify-build.mjs` | 13 | build output drifting from source |
 | `check-seam.mjs` | 87 | **host API contract drift** — see below |
-| `register-seam.mjs` | 10 | registration-time crashes / session-switch lifecycle |
-| `host-half-test.mjs` | 5 | host half staying inert (no prompt injection) |
+| `register-seam.mjs` | 8 | registration-time crashes / session-switch lifecycle |
+| `host-half-test.mjs` | 15 | host-half protocol injection (conservative, switchable, never throws) |
 | `mutation-test.mjs` | 16 mutations | **the self-check silently passing** — see below |
 | `render-e2e.mjs` | 36 | **a blank assistant reply area** + inline markdown and alerts in cards |
 

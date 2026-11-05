@@ -185,7 +185,7 @@ if (block.level >= 2) {
 ├── package.json              # dsh 插件契约声明
 ├── cordis.patch.yml          # 挂载声明
 ├── src/
-│   ├── index.js              # 宿主半区（空实现）
+│   ├── index.js              # 宿主半区（注入富渲染协议）
 │   ├── client.js             # 客户端半区（渲染核心）
 │   ├── parser.js             # 解析器（运行版）
 │   ├── parser-reference.ts   # 解析器（TS 参考实现）
