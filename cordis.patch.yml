@@ -1,0 +1,20 @@
+# cordis.patch.yml —— 挂载声明
+#
+# 格式契约（宿主 loader 强制校验）：
+#   必须是**顶层 YAML 数组**，每个元素是一个 patch 动作对象。
+#   插件自身的挂载用 `insert` 动作，值为条目数组。
+#
+# 校验错误原文：
+#   "must be a top-level YAML array of loader patch entries"
+#   —— 写成 `insert:` 顶层 map 会直接被拒绝，插件不加载。
+#
+# 对照参考（已装社区插件）：
+#   dshmarket        → - insert: [{ id: dsh-market, name: 'dshmarket' }]
+#   dsh-whale-widget → - insert: [{ id: dsh-whale-widget, name: 'dsh-whale-widget' }]
+#
+# id 是插件内唯一标识；name 必须与 package.json 的 name 完全一致。
+# 改这个文件后必须重启 DSH 进程才生效。
+
+- insert:
+    - id: dsh-rich-response
+      name: 'dsh-rich-response'

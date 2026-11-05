@@ -1,0 +1,484 @@
+/**
+ * 富渲染样式 v3 —— 「清晰纸面 / Crisp Paper」
+ *
+ * 设计上下文：读者在 DSH 聊天窗口里读长技术回复，要在一屏内抓住
+ * 结论 / 并列要点 / 对比 / 步骤。用户否决「万物皆卡片」与全面染色，
+ * 定调「颜色 = 语义，结构靠留白与细线」；v2 之后又反馈
+ * 「浅灰色不好看」，因此这一版把灰色填充彻底移除。
+ *
+ * 相对 v2 的改动（核心：去灰、提净、加精致细节）：
+ *   1. 删掉所有中性灰底块 —— 表头、引用块、行 hover 不再铺 #f8f7f3，
+ *      改为透明纸面 + 细线 / 语义色，整块不再发闷。
+ *   2. 色板从「暖灰」换成「冷净」：近白 #fdfdfe、冷灰蓝次文字，
+ *      语义卡底改成近乎白的染色底，不是灰底。
+ *   3. 精致感来自小尺度细节，不是大色块：
+ *      - 结论卡 eyebrow → 白底 + 语义色细边的 11px 小胶囊
+ *      - 要点分栏每项顶部 → 20×2px 语义色短横锚点
+ *      - 步骤圆点 → 纸面 + 1.5px 语义色描边 + 语义色数字
+ *      - 表格 hover → 极淡语义色，不再用灰
+ *      - 结论卡补 1px 完整细边，容器更「收得住」
+ *   4. 亮暗仍是 19 项 token 成套配对（bg / line / text / muted 一一绑定），
+ *      @media 与宿主主题标记双重触发；.rr-rich 依旧不设 color。
+ *   5. WCAG AA：正文 ≥ 4.5:1、色条/边框 ≥ 3:1；语义不单靠颜色
+ *      （胶囊有文字）；prefers-reduced-motion 关过渡；<640px 单列塌缩。
+ *
+ * 色板按 OKLCH 感知均匀推导（低 chroma、冷调中性），落盘用 hex 兼容老宿主。
+ */
+
+.rr-root,
+.rr-rich {
+  --rr-paper: #fdfdfe;
+  --rr-surface: #f4f7fb;
+  --rr-line: #e6e9ee;
+  --rr-line-strong: #cfd5de;
+  --rr-text: #1f2328;
+  --rr-muted: #5b6472;
+  --rr-accent: #2b6cb0;
+  --rr-info-line: #2b6cb0;
+  --rr-info-bg: #f4f8ff;
+  --rr-info-label: #1a4d85;
+  --rr-success-line: #12805c;
+  --rr-success-bg: #f1fbf6;
+  --rr-success-label: #0b5b42;
+  --rr-warn-line: #b17511;
+  --rr-warn-bg: #fff9ed;
+  --rr-warn-label: #7d4f08;
+  --rr-danger-line: #b93a34;
+  --rr-danger-bg: #fff5f4;
+  --rr-danger-label: #8a2723;
+}
+
+/* 暗色不是亮色的反转：表面抬亮而非压黑，语义色降饱和并提高明度 */
+@media (prefers-color-scheme: dark) {
+  :is(.rr-root, .rr-rich) {
+    --rr-paper: #1c1e22;
+    --rr-surface: #23262c;
+    --rr-line: #343841;
+    --rr-line-strong: #4a505a;
+    --rr-text: #e9ecf1;
+    --rr-muted: #a2aab8;
+    --rr-accent: #7ab4ef;
+    --rr-info-line: #7ab4ef;
+    --rr-info-bg: #1c2736;
+    --rr-info-label: #a8d0f7;
+    --rr-success-line: #5cc39c;
+    --rr-success-bg: #1b2e27;
+    --rr-success-label: #94ddba;
+    --rr-warn-line: #e3ad50;
+    --rr-warn-bg: #30291a;
+    --rr-warn-label: #f0c983;
+    --rr-danger-line: #ec8480;
+    --rr-danger-bg: #322020;
+    --rr-danger-label: #f4adab;
+  }
+}
+
+/* 宿主手动切主题时系统偏好不会变 —— 按常见主题标记再触发一次 */
+:is([data-theme="dark"], [data-color-scheme="dark"], [data-dsw-theme="dark"], .dark, .theme-dark) :is(.rr-root, .rr-rich) {
+  --rr-paper: #1c1e22;
+  --rr-surface: #23262c;
+  --rr-line: #343841;
+  --rr-line-strong: #4a505a;
+  --rr-text: #e9ecf1;
+  --rr-muted: #a2aab8;
+  --rr-accent: #7ab4ef;
+  --rr-info-line: #7ab4ef;
+  --rr-info-bg: #1c2736;
+  --rr-info-label: #a8d0f7;
+  --rr-success-line: #5cc39c;
+  --rr-success-bg: #1b2e27;
+  --rr-success-label: #94ddba;
+  --rr-warn-line: #e3ad50;
+  --rr-warn-bg: #30291a;
+  --rr-warn-label: #f0c983;
+  --rr-danger-line: #ec8480;
+  --rr-danger-bg: #322020;
+  --rr-danger-label: #f4adab;
+}
+
+.rr-root,
+.rr-rich {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rr-md {
+  min-width: 0;
+}
+
+/* ── 结论卡：近白染色底 + 完整细边 + 语义色胶囊 ───────────── */
+
+.rr-card {
+  --rr-tone-line: var(--rr-info-line);
+  --rr-tone-bg: var(--rr-info-bg);
+  --rr-tone-label: var(--rr-info-label);
+  border: 1px solid var(--rr-line);
+  border-left: 3px solid var(--rr-tone-line);
+  border-radius: 0 10px 10px 0;
+  background: var(--rr-tone-bg);
+  color: var(--rr-text);
+  padding: 14px 18px;
+}
+
+.rr-tone-info {
+  --rr-tone-line: var(--rr-info-line);
+  --rr-tone-bg: var(--rr-info-bg);
+  --rr-tone-label: var(--rr-info-label);
+}
+.rr-tone-success {
+  --rr-tone-line: var(--rr-success-line);
+  --rr-tone-bg: var(--rr-success-bg);
+  --rr-tone-label: var(--rr-success-label);
+}
+.rr-tone-warn {
+  --rr-tone-line: var(--rr-warn-line);
+  --rr-tone-bg: var(--rr-warn-bg);
+  --rr-tone-label: var(--rr-warn-label);
+}
+.rr-tone-danger {
+  --rr-tone-line: var(--rr-danger-line);
+  --rr-tone-bg: var(--rr-danger-bg);
+  --rr-tone-label: var(--rr-danger-label);
+}
+.rr-tone-neutral {
+  --rr-tone-line: var(--rr-line-strong);
+  --rr-tone-bg: var(--rr-paper);
+  --rr-tone-label: var(--rr-muted);
+}
+
+.rr-card-title {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--rr-tone-line);
+  border-radius: 5px;
+  background: var(--rr-paper);
+  color: var(--rr-tone-label);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+
+.rr-card-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--rr-text);
+}
+
+/* ── S 族语义块：直接复用结论卡的纸面语言，只换语义色 ────────── */
+
+.rr-alert {
+  margin: 14px 0;
+}
+
+/* ── 行内 markdown：结构块单元格 / 要点标题里自绘的语法 ──────── */
+
+.rr-inline-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  padding: 0.08em 0.34em;
+  border: 1px solid var(--rr-line);
+  border-radius: 4px;
+  background: var(--rr-surface);
+  color: var(--rr-text);
+}
+
+.rr-inline-link {
+  color: var(--rr-accent);
+  text-decoration: none;
+}
+
+.rr-inline-link:hover {
+  text-decoration: underline;
+}
+
+.rr-inline-link:focus-visible {
+  outline: 2px solid var(--rr-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── 要点分栏：细线分区 + 语义色短横锚点，绝无灰底 ───────── */
+
+.rr-points {
+  display: grid;
+  grid-template-columns: repeat(var(--rr-cols, 3), minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--rr-line);
+  border-bottom: 1px solid var(--rr-line);
+  padding: 16px 0;
+}
+
+.rr-point {
+  min-width: 0;
+  padding: 0 18px;
+  color: var(--rr-text);
+}
+
+.rr-point::before {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--rr-accent);
+  margin-bottom: 10px;
+}
+
+.rr-point + .rr-point {
+  border-left: 1px solid var(--rr-line);
+}
+
+.rr-point:first-child {
+  padding-left: 0;
+}
+
+.rr-point-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.rr-point-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--rr-muted);
+}
+
+/* ── 对比表：透明表头 + 一条实线，不铺灰 ─────────────────── */
+
+.rr-table-wrap {
+  overflow-x: auto;
+  color: var(--rr-text);
+}
+
+.rr-table-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--rr-muted);
+  margin-bottom: 10px;
+}
+
+.rr-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.rr-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--rr-muted);
+  border-bottom: 1.5px solid var(--rr-line-strong);
+}
+
+.rr-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rr-line);
+  color: var(--rr-text);
+  vertical-align: top;
+}
+
+.rr-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rr-table tbody td:first-child {
+  font-weight: 500;
+}
+
+.rr-table tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.rr-table tbody tr:hover {
+  background: var(--rr-info-bg);
+}
+
+/* ── 步骤流：纸面圆点 + 语义色描边数字 ───────────────────── */
+
+.rr-steps-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rr-text);
+}
+
+.rr-steps-sub {
+  font-size: 12px;
+  color: var(--rr-muted);
+  margin-top: 4px;
+  margin-bottom: 14px;
+}
+
+.rr-steps-list {
+  margin: 0;
+  padding-left: 4px;
+  list-style: none;
+  counter-reset: rr-step;
+  color: var(--rr-text);
+}
+
+.rr-step {
+  position: relative;
+  padding-left: 36px;
+  padding-bottom: 16px;
+  counter-increment: rr-step;
+}
+
+.rr-step::before {
+  content: counter(rr-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--rr-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--rr-paper);
+  color: var(--rr-accent);
+  z-index: 1;
+}
+
+.rr-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 27px;
+  bottom: 3px;
+  width: 1px;
+  background: var(--rr-line);
+}
+
+.rr-step:last-child {
+  padding-bottom: 0;
+}
+
+.rr-step-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 3px;
+  color: var(--rr-text);
+}
+
+.rr-step-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--rr-muted);
+}
+
+/* ── 分栏：中间一条竖线，物理上的「对比」 ─────────────────── */
+
+.rr-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.rr-col {
+  min-width: 0;
+}
+
+.rr-col + .rr-col {
+  border-left: 1px solid var(--rr-line);
+  padding-left: 18px;
+}
+
+/* ── 引用块：旁注，不铺灰底 ─────────────────────────────── */
+
+.rr-rich blockquote {
+  border-left: 3px solid var(--rr-line-strong);
+  border-radius: 0 10px 10px 0;
+  background: transparent;
+  color: var(--rr-text);
+  padding: 4px 0 4px 16px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.rr-rich blockquote > :first-child {
+  margin-top: 0;
+}
+
+.rr-rich blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── 思考过程 / 图片降级（保持原行为）─────────────────────── */
+
+.rr-reasoning {
+  min-width: 0;
+  margin: 4px 0;
+}
+
+.rr-reasoning-body {
+  min-width: 0;
+  padding: 4px 0 2px;
+}
+
+.rr-image {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 10px;
+  margin: 6px 0;
+  object-fit: contain;
+}
+
+.rr-image-missing {
+  color: var(--rr-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ── 响应式 / 可访问性 ──────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .rr-points {
+    grid-template-columns: 1fr;
+    padding: 4px 0;
+  }
+  .rr-point,
+  .rr-point + .rr-point {
+    border-left: none;
+    border-top: 1px solid var(--rr-line);
+    padding: 14px 0;
+  }
+  .rr-point:first-child {
+    border-top: none;
+    padding-top: 8px;
+    padding-bottom: 14px;
+  }
+  .rr-columns {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .rr-col + .rr-col {
+    border-left: none;
+    border-top: 1px solid var(--rr-line);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-table tbody tr {
+    transition: none;
+  }
+}

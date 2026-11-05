@@ -1,0 +1,44 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物
+# 注意：lib/ 是否入库需权衡 —— DSH 装插件时用 github: 方式会走源码构建，
+# 但若发布到 npm marketplace 则需要 lib/。当前选择：入库，保证 clone 即可用。
+# 如需改为不入库，取消下面两行注释并同步调整 build 流程
+# lib/
+
+# 环境与配置
+.env
+.env.local
+*.local
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 系统
+Thumbs.db
+desktop.ini
+
+# Agent 临时目录
+.scratch/
+.tmp/
+.tmp-*.yml
+
+# 本地 AI 记忆与个人笔记（不入库）
+.workbuddy/
+
+# 中文文件名（跨平台兼容，避免社区 clone 后路径乱码）
+# 若需保留中文文档，请用英文文件名 + 中文内容
+*.md.tmp

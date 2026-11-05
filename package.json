@@ -1,0 +1,57 @@
+{
+  "name": "dsh-rich-response",
+  "version": "0.1.0",
+  "description": "把 DSH 回复渲染成彩色卡片、对比表与步骤流 —— 支持语义块着色与结构化输出",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "skills/rich-response/SKILL.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.1-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "rich-response",
+    "markdown",
+    "card",
+    "theme"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-client-ui-theme": ">=0.2.1-rc.2"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/parser-test.mjs",
+    "test:semantic": "node tests/semantic-test.mjs",
+    "test:build": "node tests/verify-build.mjs",
+    "test:seam": "node tests/check-seam.mjs",
+    "test:all": "node scripts/build.mjs && node tests/parser-test.mjs && node tests/semantic-test.mjs && node tests/verify-build.mjs && node tests/check-seam.mjs && node tests/register-seam.mjs && node tests/host-half-test.mjs && node tests/mutation-test.mjs && node tests/render-e2e.mjs",
+    "test:mutation": "node tests/mutation-test.mjs",
+    "test:host": "node tests/host-half-test.mjs",
+    "test:e2e": "node tests/render-e2e.mjs"
+  }
+}
