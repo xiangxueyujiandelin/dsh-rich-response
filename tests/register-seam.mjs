@@ -5,7 +5,8 @@
  * （连 10 月 31 日的历史会话也空白）。
  *
  * 根因链：
- *   1. 14:25 的 bundle（提交 ea58b16）在 register 的 spec 里声明了 children
+ *   1. 14:25 的 bundle（原提交 ea58b16，仓库重建后已不存在）在 register 的 spec 里
+ *      声明了 children
  *      （conversation.chat.reasoning.body / conversation.chat.message.images）。
  *   2. 宿主内建 assistant-step entry 已经声明了这两个子 slot，
  *      而声明权是独占的（web bundle 实测，slots.register）：
@@ -18,14 +19,15 @@
  *   4. render-e2e 的 register 是「来者不拒」的假实现，抓不到这类注册期崩溃。
  *
  * 本脚本按宿主真实规则实现 slots 注册表，断言两件事：
- *   A. 历史提交 ea58b16（14:25）那份 bundle 在本模拟器下**注册期抛 already declared**
- *      —— 把根因钉死，防止将来有人「好心」把 children 加回来。
+ *   A. 冻结样本 tests/fixtures/legacy-bundle-with-children.js 在本模拟器下
+ *      **注册期抛 already declared** —— 把根因钉死，防止将来有人「好心」把 children 加回来。
+ *      样本是死文件，不依赖 git 历史（老写法 `git show ea58b16:lib/client.js`
+ *      在仓库重建后永久失败，会让这两条断言静默跳过、套件假绿）。
  *   B. 当前 lib/ 产物**注册成功**，且渲染一条 settled 文本回复有正文。
  *
  * 运行：node tests/register-seam.mjs
  */
 import { readFileSync } from 'node:fs'
-import { captureStdout } from './capture-stdout.mjs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vm from 'node:vm'
@@ -220,35 +222,22 @@ function renderText(view, text) {
   return out.join('')
 }
 
-// ── A. 根因钉死：历史提交 ea58b16（14:25）的 bundle 必须复现注册期崩溃 ──
-// ⚠️ 必须钉死具体 commit，不能用 HEAD —— 39daded 已修好这个 bug，
-//    HEAD 一前移，「复现崩溃」的断言就会假失败（2026-11-05 实测踩过）。
-const LEGACY_COMMIT = 'ea58b16'
-console.log(`\n── 根因复现：历史提交 ${LEGACY_COMMIT} 的 bundle ──`)
-let legacyCode = null
-try {
-  // 用 captureStdout 而不是 execFileSync：沙箱禁止管道 stdio（EPERM）
-  const fetched = captureStdout('git', ['show', `${LEGACY_COMMIT}:lib/client.js`], {
-    cwd: root,
-    root,
-  })
-  if (fetched.error || fetched.status !== 0) {
-    throw fetched.error ?? new Error(`git exit ${fetched.status}`)
-  }
-  legacyCode = fetched.stdout
-} catch (e) {
-  console.log(`  （取不到历史产物，跳过根因复现：${e.message}）`)
-}
-if (legacyCode) {
-  const host = runRegistration(legacyCode, `${LEGACY_COMMIT}:lib/client.js`)
+// ── A. 根因钉死：冻结样本必须复现注册期崩溃 ────────────────
+// 样本是 tests/fixtures/ 下的死文件，不依赖 git 历史 —— 老写法要 `git show ea58b16`，
+// 仓库重建后取不到，两条断言会被静默跳过，套件照样报绿（假绿比没有断言更危险）。
+const LEGACY_FIXTURE = join(root, 'tests', 'fixtures', 'legacy-bundle-with-children.js')
+console.log('\n── 根因复现：冻结样本（原 ea58b16 的最小等价复现）──')
+const legacyCode = readFileSync(LEGACY_FIXTURE, 'utf8')
+{
+  const host = runRegistration(legacyCode, LEGACY_FIXTURE)
   const st = host.state
   t(
-    '历史版在注册期抛「already declared」（= 线上空白的根因）',
+    '样本在注册期抛「already declared」（= 线上空白的根因）',
     st.registerError !== null && /already declared/.test(String(st.registerError?.message)),
     st.registerError ? String(st.registerError.message) : '居然注册成功了',
   )
   t(
-    '历史版崩溃后 slot 上没有渲染器（→ 宿主渲染空 div → 整片空白）',
+    '样本崩溃后 slot 上没有渲染器（→ 宿主渲染空 div → 整片空白）',
     st.registered === null,
   )
 }
