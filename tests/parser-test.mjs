@@ -4,12 +4,15 @@
  * 对应规范：protocol/rich-render-protocol-v1.md §12
  * 运行：node parser-test.mjs
  *
- * 状态：24/24 通过（2026-11-05）
+ * 状态：31/31 通过（2026-11-05）
  * 本文件是实现的验收标准，可直接移植为 vitest / junit 测试。
  *
  * 注意：这里的 parseRich 是规范 §9 的参考实现（与 parser-reference.ts 逻辑一致），
  * 之所以内联而非 import，是为了让本文件零依赖、可直接 node 运行。
  */
+
+import { readFileSync } from 'node:fs'
+import vm from 'node:vm'
 
 // 测试用例集：对应 protocol/rich-render-protocol-v1.md §12
 // 直接内联核心逻辑，验证降级矩阵成立
@@ -156,6 +159,57 @@ for(const ch of full){acc+=ch;states.push(parseRich(acc))}
 t(22,'流式最终闭合为块',blocks(states[states.length-1]).length===1&&blocks(states[states.length-1])[0].level===0)
 t(23,'流式中途不产生块',states.slice(0,-1).every(s=>blocks(s).length===0))
 t(17.5,'流式中途有 markdown 兜底',states.slice(0,-1).every(s=>md(s).length>=1))
+
+console.log('── §12.5 renderInline 不变量（递归 + 共享 g 正则回归）──')
+// renderInline 住在 src/client.js 的 factory 闭包里，无法 import；
+// 这里按源码切片 + vm 执行（只用 node 内置模块，仍然零外部依赖）。
+// 回归背景：INLINE_RE 曾是模块级带 g 的正则，递归调用共享它的 lastIndex ——
+// 子循环结束时 exec 返回 null 并把 lastIndex 归零，父循环于是从 0 重匹配同一个
+// token，m.index > last 恒假 → 无限循环，浏览器主线程忙等、标签页冻结。
+// 下面覆盖当时实测冻住的 4 个输入，外加 2 个不该受影响的正常对照。
+const clientSrc = readFileSync(new URL('../src/client.js', import.meta.url), 'utf8')
+const inlineStart = clientSrc.indexOf('const INLINE_RE =')
+const inlineEnd = ['// S 族 · 语义块（GitHub Alerts）', 'function buildMarkdownLabels']
+  .map((marker) => clientSrc.indexOf(marker))
+  .find((idx) => idx > inlineStart)
+t('rr0', '能从 src/client.js 定位 renderInline 代码段', inlineStart !== -1 && inlineEnd !== undefined && inlineEnd !== -1)
+
+if (inlineStart !== -1 && inlineEnd !== undefined && inlineEnd !== -1) {
+  const inlineCode = clientSrc.slice(inlineStart, inlineEnd)
+  const renderInlineCase = (text) => {
+    // 独立上下文：createElement 桩只需产出可断言的树，不依赖 React
+    const context = vm.createContext({
+      createElement: (type, props, ...kids) => ({ type, children: kids.length > 1 ? kids : kids[0] }),
+    })
+    vm.runInContext(`${inlineCode}\nthis.rrRenderInline = renderInline;`, context, { timeout: 1000 })
+    return vm.runInContext(`this.rrRenderInline(${JSON.stringify(text)})`, context, { timeout: 1000 })
+  }
+  const inlineCase = (id, name, text, check) => {
+    let ok = false
+    let detail = ''
+    try {
+      const out = renderInlineCase(text)
+      ok = check(out)
+      detail = JSON.stringify(out) ?? String(out)
+    } catch (err) {
+      detail = `抛错或超时：${err && err.message}`
+    }
+    t(id, name, ok, String(detail).slice(0, 160))
+  }
+
+  inlineCase('rr1', '加粗内含斜体不死循环（曾冻结标签页）', '**a *b* c**',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'strong' && o[0].children.some((c) => c && c.type === 'em'))
+  inlineCase('rr2', '链接标签内含加粗不死循环（曾冻结标签页）', '[**x**](https://e.com)',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'a' && o[0].children[0].type === 'strong')
+  inlineCase('rr3', '删除线内含斜体不死循环（曾冻结标签页）', '~~*x*~~',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'del' && o[0].children[0].type === 'em')
+  inlineCase('rr4', '加粗内含行内代码不死循环（曾冻结标签页）', '**注意 `--flag`**',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'strong' && o[0].children.some((c) => c && c.type === 'code'))
+  inlineCase('rr5', '加粗内含下划线正常（不应误判为 __ 强调）', '**snake_case**',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'strong')
+  inlineCase('rr6', '扁平加粗不受影响（防修过头）', '**bold**',
+    (o) => Array.isArray(o) && o[0] && o[0].type === 'strong' && o[0].children === 'bold')
+}
 
 console.log(`\n结果：${pass} 通过，${fail} 失败`)
 process.exit(fail>0?1:0)

@@ -816,11 +816,19 @@ window.__ModuleLoader__.load({
         return src
       }
 
+      // ⚠️ INLINE_RE 是模块级带 g 的正则，lastIndex 属于实例状态，而本函数会递归
+      //   （strong / del / em / link 的子节点都要再走一遍）。子调用循环结束时 exec
+      //   返回 null，按规范会把 lastIndex 归零；回到父层就从 0 重新匹配同一个 token，
+      //   m.index > last 恒为假 → 死循环、主线程卡死、标签页冻结（2026-11-05 实测：
+      //   `**a *b* c**`、`[**x**](…)`、`~~*x*~~`、`**注意 `--flag`**` 全部冻住）。
+      //   所以每次调用都用独立实例；再加迭代上限兜底，解析器绝不拖死渲染线程。
+      const re = new RegExp(INLINE_RE.source, 'g')
       let out = null
       let last = 0
       let m
-      INLINE_RE.lastIndex = 0
-      while ((m = INLINE_RE.exec(src)) !== null) {
+      let guard = 0
+      while ((m = re.exec(src)) !== null) {
+        if (++guard > 512) break
         if (m.index > last) {
           out = out || []
           out.push(src.slice(last, m.index))

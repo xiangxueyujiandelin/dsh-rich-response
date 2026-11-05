@@ -494,7 +494,7 @@ DSH 支持结构化输出协议（`system-prompt/assemble` 段贡献）。若走
 | `parser-reference.ts` | 解析器参考实现（TS，DSH 与安卓端共用核心） |
 | `parser-test.mjs` | 测试用例集，零依赖，`node parser-test.mjs` 直接跑 |
 
-**当前状态：24/24 通过**（2026-11-05 实测）。
+**当前状态：31/31 通过**（2026-11-05 实测）。
 
 ### 12.1 解析正确性
 

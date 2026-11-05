@@ -106,11 +106,11 @@ L4  完全没有标记      → 普通 markdown（宿主默认）
 npm run test:all
 ```
 
-八套测试共 209 项断言，**无需安装任何依赖**（Node 22+ 即可）：
+八套测试共 216 项断言，**无需安装任何依赖**（Node 22+ 即可）：
 
 | 套件 | 断言数 | 防什么 |
 |---|---|---|
-| `parser-test.mjs` | 24 | 协议解析与降级矩阵 |
+| `parser-test.mjs` | 31 | 协议解析与降级矩阵 |
 | `semantic-test.mjs` | 22 | S 族语义块识别与字符区间（曾恒返回空） |
 | `verify-build.mjs` | 13 | 构建产物与源码漂移 |
 | `check-seam.mjs` | 87 | **宿主 API 契约跑偏**（见下） |
@@ -271,11 +271,11 @@ No flicker, no layout jump. The renderer only needs one rule: *render markdown a
 npm run test:all
 ```
 
-Eight suites, 209 assertions, **no dependencies to install** (Node 22+ is enough):
+Eight suites, 216 assertions, **no dependencies to install** (Node 22+ is enough):
 
 | Suite | Assertions | Guards against |
 |---|---|---|
-| `parser-test.mjs` | 24 | protocol parsing and the degradation matrix |
+| `parser-test.mjs` | 31 | protocol parsing and the degradation matrix |
 | `semantic-test.mjs` | 22 | semantic-block (GitHub Alerts) detection and character ranges |
 | `verify-build.mjs` | 13 | build output drifting from source |
 | `check-seam.mjs` | 87 | **host API contract drift** — see below |
