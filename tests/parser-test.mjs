@@ -20,7 +20,7 @@ import vm from 'node:vm'
 const FENCE = ':::'
 const KNOWN = ['summary','points','table','steps','columns']
 const DEFAULT_ATTRS = {
-  summary:{title:'结论',tone:'info'}, points:{cols:'3',tone:'neutral'},
+  summary:{title:'结论',tone:'summary'}, points:{cols:'3',tone:'neutral'},
   table:{title:'',compact:'false'}, steps:{title:'',ordered:'',showLine:'true'}, columns:{}
 }
 function matchOpen(line){

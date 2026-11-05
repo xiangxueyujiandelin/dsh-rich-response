@@ -106,18 +106,18 @@ L4  完全没有标记      → 普通 markdown（宿主默认）
 npm run test:all
 ```
 
-八套测试共 218 项断言，**无需安装任何依赖**（Node 22+ 即可）：
+八套测试共 222 项断言，**无需安装任何依赖**（Node 22+ 即可）：
 
 | 套件 | 断言数 | 防什么 |
 |---|---|---|
 | `parser-test.mjs` | 31 | 协议解析与降级矩阵 |
 | `semantic-test.mjs` | 22 | S 族语义块识别与字符区间（曾恒返回空） |
 | `verify-build.mjs` | 13 | 构建产物与源码漂移 |
-| `check-seam.mjs` | 87 | **宿主 API 契约跑偏**（见下） |
+| `check-seam.mjs` | 89 | **宿主 API 契约跑偏**（见下） |
 | `register-seam.mjs` | 10 | 注册期崩溃 / 会话切换生命周期 |
 | `host-half-test.mjs` | 15 | 宿主半区协议注入（保守、可关闭、异常不外泄） |
 | `mutation-test.mjs` | 16 变异 | **自检脚本本身假绿**（见下） |
-| `render-e2e.mjs` | 40 | **回复区整片空白** + 卡片正文行内 markdown / 语义块 / 长文分栏退化 |
+| `render-e2e.mjs` | 42 | **回复区整片空白** + 卡片正文行内 markdown / 语义块 / 长文分栏退化 |
 
 `check-seam.mjs` 的存在是因为第一版把三个宿主 API 猜错了，插件装上完全不会渲染；
 第二版又因为用错了模块格式，DSH 直接启动失败；
@@ -166,7 +166,7 @@ ctx.slots.register(
 
 ### 当前状态
 
-协议与渲染器已实现并通过测试，**但尚未在真实运行的 DSH 上验证** —— 宿主契约是靠读源码确认的，不是靠跑出来的。
+协议与渲染器已实现并通过测试，**并已于 2026-11-05 在真实运行的 DSH 桌面版（0.2.2-rc.1）上验证**：客户端注册日志正常，五类结构块与 GitHub Alerts 均渲染为卡片，Console 无插件报错。宿主契约仍以读源码确认为准（见 `docs/host-seam-reference.md`）。
 
 ### 许可
 
@@ -271,18 +271,18 @@ No flicker, no layout jump. The renderer only needs one rule: *render markdown a
 npm run test:all
 ```
 
-Eight suites, 218 assertions, **no dependencies to install** (Node 22+ is enough):
+Eight suites, 222 assertions, **no dependencies to install** (Node 22+ is enough):
 
 | Suite | Assertions | Guards against |
 |---|---|---|
 | `parser-test.mjs` | 31 | protocol parsing and the degradation matrix |
 | `semantic-test.mjs` | 22 | semantic-block (GitHub Alerts) detection and character ranges |
 | `verify-build.mjs` | 13 | build output drifting from source |
-| `check-seam.mjs` | 87 | **host API contract drift** — see below |
+| `check-seam.mjs` | 89 | **host API contract drift** — see below |
 | `register-seam.mjs` | 10 | registration-time crashes / session-switch lifecycle |
 | `host-half-test.mjs` | 15 | host-half protocol injection (conservative, switchable, never throws) |
 | `mutation-test.mjs` | 16 mutations | **the self-check silently passing** — see below |
-| `render-e2e.mjs` | 40 | **a blank assistant reply area** + inline markdown and alerts in cards + long columns degrading to single column |
+| `render-e2e.mjs` | 42 | **a blank assistant reply area** + inline markdown and alerts in cards + long columns degrading to single column |
 
 `check-seam.mjs` exists because the first implementation guessed three host APIs wrong and the plugin would not have rendered at all; the second one used the wrong module format and DSH failed to boot; the third one omitted `MarkdownText`'s `labels` prop and **the assistant reply area went completely blank**. Every host API used here was confirmed against the real DSH artifacts; `docs/host-seam-reference.md` (Chinese) records the findings.
 
@@ -323,7 +323,7 @@ ctx.slots.register(
 
 ### Status
 
-Protocol and renderer are implemented and tested. **Not yet verified against a running DSH instance** — the host contract was confirmed by reading source, not by running it.
+Protocol and renderer are implemented and tested, and were **verified on a running DSH desktop instance (0.2.2-rc.1) on 2026-11-05**: the client registered its renderer, all five block types plus GitHub Alerts rendered as cards, and the console showed no plugin errors. The host contract is still confirmed by reading source — see `docs/host-seam-reference.md`.
 
 ### License
 

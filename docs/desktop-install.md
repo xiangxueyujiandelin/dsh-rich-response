@@ -122,7 +122,7 @@ console.log('CSS:', c.includes('__RR_CSS__'));
 ```bash
 # 1. 重新构建
 cd "D:/AAAxiuxing/AI/dsh回复内容美化插件"
-npm run test:all        # 66 项测试，顺便重建 lib/
+npm run test:all        # 222 项测试，顺便重建 lib/
 
 # 2. 同步到桌面版
 DST="$HOME/.dsh/profiles/desktop/node_modules/dsh-rich-response"

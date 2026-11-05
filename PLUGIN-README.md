@@ -66,14 +66,14 @@ node scripts/build.mjs        # 编译到 lib/
 node tests/parser-test.mjs    # 协议用例集（31 项）
 node tests/semantic-test.mjs  # S 族区间检测（22 项）
 node tests/verify-build.mjs   # 构建产物一致性（13 项）
-node tests/check-seam.mjs     # 宿主接缝自检（87 项）
+node tests/check-seam.mjs     # 宿主接缝自检（89 项）
 node tests/register-seam.mjs  # 注册期接缝 + 空白根因复现（10 项）
 node tests/host-half-test.mjs # 宿主半区注入（15 项）
 node tests/mutation-test.mjs  # 变异测试（16 变异，防自检假绿）
-node tests/render-e2e.mjs     # 端到端渲染验证（40 项，防回复区空白）
+node tests/render-e2e.mjs     # 端到端渲染验证（42 项，防回复区空白）
 ```
 
-合计 218 条断言 + 16 个变异。一次跑全套用 `npm run test:all`（会先重建 `lib/`）。
+合计 222 条断言 + 16 个变异。一次跑全套用 `npm run test:all`（会先重建 `lib/`）。
 
 零构建依赖，clone 下来就能跑。
 

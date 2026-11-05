@@ -37,6 +37,9 @@
   --rr-info-line: #2b6cb0;
   --rr-info-bg: #f4f8ff;
   --rr-info-label: #1a4d85;
+  --rr-summary-line: #7c5cbf;
+  --rr-summary-bg: #f8f5ff;
+  --rr-summary-label: #4f3a8a;
   --rr-success-line: #12805c;
   --rr-success-bg: #f1fbf6;
   --rr-success-label: #0b5b42;
@@ -61,6 +64,9 @@
     --rr-info-line: #7ab4ef;
     --rr-info-bg: #1c2736;
     --rr-info-label: #a8d0f7;
+    --rr-summary-line: #b39bea;
+    --rr-summary-bg: #241e33;
+    --rr-summary-label: #d5c6f7;
     --rr-success-line: #5cc39c;
     --rr-success-bg: #1b2e27;
     --rr-success-label: #94ddba;
@@ -101,6 +107,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* 让 points/columns 能按「回复栏实际宽度」而不是窗口宽度降级 */
+  container-type: inline-size;
 }
 
 .rr-md {
@@ -125,6 +133,12 @@
   --rr-tone-line: var(--rr-info-line);
   --rr-tone-bg: var(--rr-info-bg);
   --rr-tone-label: var(--rr-info-label);
+}
+/* 结论卡默认色：协议 §「紫色描边」——与 S 族的 info 蓝区分开 */
+.rr-tone-summary {
+  --rr-tone-line: var(--rr-summary-line);
+  --rr-tone-bg: var(--rr-summary-bg);
+  --rr-tone-label: var(--rr-summary-label);
 }
 .rr-tone-success {
   --rr-tone-line: var(--rr-success-line);
@@ -463,6 +477,36 @@
 /* ── 响应式 / 可访问性 ──────────────────────────────────── */
 
 @media (max-width: 640px) {
+  .rr-points {
+    grid-template-columns: 1fr;
+    padding: 4px 0;
+  }
+  .rr-point,
+  .rr-point + .rr-point {
+    border-left: none;
+    border-top: 1px solid var(--rr-line);
+    padding: 14px 0;
+  }
+  .rr-point:first-child {
+    border-top: none;
+    padding-top: 8px;
+    padding-bottom: 14px;
+  }
+  .rr-columns {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .rr-col + .rr-col {
+    border-left: none;
+    border-top: 1px solid var(--rr-line);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+}
+
+/* 容器查询：回复栏宽度往往远小于窗口，按容器宽度决定是否堆叠。
+   规则与上一条 @media 完全一致，后者保留给不支持容器查询的旧引擎。 */
+@container (max-width: 640px) {
   .rr-points {
     grid-template-columns: 1fr;
     padding: 4px 0;

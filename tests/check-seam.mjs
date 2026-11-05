@@ -536,6 +536,16 @@ t(
   '产物不含编造的全局变量',
   !built.includes('__DSH_PRIMITIVES__'),
 )
+t(
+  '结论卡有独立紫色 tone（亮暗两套都定义 --rr-summary-*）',
+  (built.match(/--rr-summary-line/g) || []).length >= 3 && built.includes('.rr-tone-summary'),
+  '亮色 1 处 + 暗色 2 处（prefers-color-scheme / data-theme）',
+)
+t(
+  'points/columns 按容器宽度降级（@container 而非只靠视口）',
+  built.includes('@container (max-width: 640px)') && built.includes('container-type: inline-size'),
+  '聊天栏宽度远小于窗口，纯 @media 视口查询在桌面版几乎不触发',
+)
 
 // 关键回归防线：产物必须在 classic script 语义下能执行
 // （vm.runInContext 对 import 语句会抛 SyntaxError，与宿主行为一致）

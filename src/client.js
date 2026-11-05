@@ -1064,7 +1064,7 @@ window.__ModuleLoader__.load({
     }
 
     function SummaryCard({ block, props }) {
-      const tone = block.attrs.tone || 'info'
+      const tone = block.attrs.tone || 'summary'
       return createElement(
         'div',
         { className: `rr-card rr-tone-${tone}` },

@@ -40,7 +40,7 @@ Blocks arrive while the model is still writing. The parser must:
 npm run test:all
 ```
 
-All three suites must pass:
+All eight suites must pass:
 
 | Suite | What it guards |
 |---|---|

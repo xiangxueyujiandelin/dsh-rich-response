@@ -281,6 +281,33 @@ t(
   html.slice(0, 240),
 )
 
+console.log('\n── 结论卡默认紫色 tone（2026-11-05 真机：曾显示成蓝色，与协议 §颜色 不符）──')
+err = null
+html = ''
+try {
+  html = render(':::summary{title="结论"}\n默认色应走 summary 紫。\n:::')
+} catch (e) {
+  err = e
+}
+t(
+  'summary 默认 tone 是 summary（rr-tone-summary），不再与 S 族 info 撞色',
+  err === null && html.includes('rr-tone-summary'),
+  err ? String(err.message) : html.slice(0, 200),
+)
+
+err = null
+html = ''
+try {
+  html = render(':::summary{tone="success"}\n显式 tone 生效。\n:::')
+} catch (e) {
+  err = e
+}
+t(
+  'summary 显式 tone 覆盖默认紫',
+  err === null && html.includes('rr-tone-success') && !html.includes('rr-tone-summary'),
+  err ? String(err.message) : html.slice(0, 200),
+)
+
 err = null
 html = ''
 try {
