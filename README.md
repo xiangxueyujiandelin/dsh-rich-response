@@ -106,7 +106,7 @@ L4  完全没有标记      → 普通 markdown（宿主默认）
 npm run test:all
 ```
 
-八套测试共 205 项断言，**无需安装任何依赖**（Node 22+ 即可）：
+八套测试共 209 项断言，**无需安装任何依赖**（Node 22+ 即可）：
 
 | 套件 | 断言数 | 防什么 |
 |---|---|---|
@@ -117,7 +117,7 @@ npm run test:all
 | `register-seam.mjs` | 8 | 注册期崩溃 / 会话切换生命周期 |
 | `host-half-test.mjs` | 15 | 宿主半区协议注入（保守、可关闭、异常不外泄） |
 | `mutation-test.mjs` | 16 变异 | **自检脚本本身假绿**（见下） |
-| `render-e2e.mjs` | 36 | **回复区整片空白** + 卡片正文行内 markdown / 语义块 |
+| `render-e2e.mjs` | 40 | **回复区整片空白** + 卡片正文行内 markdown / 语义块 / 长文分栏退化 |
 
 `check-seam.mjs` 的存在是因为第一版把三个宿主 API 猜错了，插件装上完全不会渲染；
 第二版又因为用错了模块格式，DSH 直接启动失败；
@@ -271,7 +271,7 @@ No flicker, no layout jump. The renderer only needs one rule: *render markdown a
 npm run test:all
 ```
 
-Eight suites, 205 assertions, **no dependencies to install** (Node 22+ is enough):
+Eight suites, 209 assertions, **no dependencies to install** (Node 22+ is enough):
 
 | Suite | Assertions | Guards against |
 |---|---|---|
@@ -282,7 +282,7 @@ Eight suites, 205 assertions, **no dependencies to install** (Node 22+ is enough
 | `register-seam.mjs` | 8 | registration-time crashes / session-switch lifecycle |
 | `host-half-test.mjs` | 15 | host-half protocol injection (conservative, switchable, never throws) |
 | `mutation-test.mjs` | 16 mutations | **the self-check silently passing** — see below |
-| `render-e2e.mjs` | 36 | **a blank assistant reply area** + inline markdown and alerts in cards |
+| `render-e2e.mjs` | 40 | **a blank assistant reply area** + inline markdown and alerts in cards + long columns degrading to single column |
 
 `check-seam.mjs` exists because the first implementation guessed three host APIs wrong and the plugin would not have rendered at all; the second one used the wrong module format and DSH failed to boot; the third one omitted `MarkdownText`'s `labels` prop and **the assistant reply area went completely blank**. Every host API used here was confirmed against the real DSH artifacts; `docs/host-seam-reference.md` (Chinese) records the findings.
 

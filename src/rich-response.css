@@ -399,6 +399,19 @@
   padding-left: 18px;
 }
 
+/* 长文分栏退回单列：短对照仍并排，长段落不挤成窄条 */
+.rr-columns-stacked {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.rr-columns-stacked .rr-col + .rr-col {
+  border-left: none;
+  border-top: 1px solid var(--rr-line);
+  padding-left: 0;
+  padding-top: 14px;
+}
+
 /* ── 引用块：旁注，不铺灰底 ─────────────────────────────── */
 
 .rr-rich blockquote {

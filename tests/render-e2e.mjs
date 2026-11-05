@@ -317,6 +317,37 @@ t(
   html.slice(0, 240),
 )
 
+console.log('\n── 分栏（columns）：短对照并排，长文自动退单列 ──')
+err = null
+html = ''
+try {
+  html = render(':::columns\n左：短条目\n\n---\n\n右：短条目\n:::')
+} catch (e) {
+  err = e
+}
+t('短 columns 不抛异常', err === null, err ? String(err.message) : '')
+t(
+  '短 columns 保持两栏',
+  html.includes('rr-columns') && !html.includes('rr-columns-stacked'),
+  html.slice(0, 200),
+)
+
+err = null
+html = ''
+try {
+  html = render(
+    `:::columns\n${'这是一段较长的正文，用来验证分栏遇到密集内容时会退化为单列。'.repeat(6)}\n\n---\n\n${'另一侧同样是较长的正文段落。'.repeat(6)}\n:::`,
+  )
+} catch (e) {
+  err = e
+}
+t('长 columns 不抛异常', err === null, err ? String(err.message) : '')
+t(
+  '长 columns 自动退回单列（rr-columns-stacked）',
+  html.includes('rr-columns-stacked'),
+  html.slice(0, 240),
+)
+
 console.log('\n── S 族语义块（GitHub Alerts）──')
 err = null
 html = ''

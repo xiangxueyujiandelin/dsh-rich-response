@@ -1165,9 +1165,15 @@ window.__ModuleLoader__.load({
       if (cols.length !== 2) {
         return createElement('div', { className: 'rr-md' }, renderBody(block.raw, props))
       }
+      // 长文分栏会把两段密集正文硬挤成两窄列（2026-11-05 用户实测：文字快挤出屏幕）。
+      // 分栏只适合短对照；正文超过阈值就退回单列，中间分隔线保留。
+      const tooLong = cols.some((col) => {
+        const plain = col.replace(/[#>*`|\-\s]/g, '')
+        return plain.length > 160 || (col.match(/\n/g) || []).length > 6
+      })
       return createElement(
         'div',
-        { className: 'rr-columns' },
+        { className: tooLong ? 'rr-columns rr-columns-stacked' : 'rr-columns' },
         cols.map((col, i) =>
           createElement(
             'div',
