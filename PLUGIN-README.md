@@ -62,13 +62,18 @@ dsh --profile web --dump-config | grep dsh-rich-response
 ## 开发
 
 ```bash
-node scripts/build.mjs       # 编译到 lib/
-node tests/parser-test.mjs   # 协议用例集（24 项）
-node tests/verify-build.mjs  # 构建产物一致性（13 项）
-node tests/check-seam.mjs    # 宿主接缝自检（68 项）
-node tests/mutation-test.mjs # 变异测试（13 变异，防自检假绿）
-node tests/render-e2e.mjs    # 端到端渲染验证（16 项，防回复区空白）
+node scripts/build.mjs        # 编译到 lib/
+node tests/parser-test.mjs    # 协议用例集（31 项）
+node tests/semantic-test.mjs  # S 族区间检测（22 项）
+node tests/verify-build.mjs   # 构建产物一致性（13 项）
+node tests/check-seam.mjs     # 宿主接缝自检（87 项）
+node tests/register-seam.mjs  # 注册期接缝 + 空白根因复现（10 项）
+node tests/host-half-test.mjs # 宿主半区注入（15 项）
+node tests/mutation-test.mjs  # 变异测试（16 变异，防自检假绿）
+node tests/render-e2e.mjs     # 端到端渲染验证（40 项，防回复区空白）
 ```
+
+合计 218 条断言 + 16 个变异。一次跑全套用 `npm run test:all`（会先重建 `lib/`）。
 
 零构建依赖，clone 下来就能跑。
 
@@ -79,6 +84,7 @@ node tests/render-e2e.mjs    # 端到端渲染验证（16 项，防回复区空�
 | `src/parser.js` | 重新 build + 硬刷新（Ctrl+Shift+R） |
 | `src/client.js` | 重新 build + 硬刷新 |
 | `src/rich-response.css` | 重新 build + 硬刷新 |
+| `package.json` / `cordis.patch.yml` | **必须重启 DSH 进程** |
 
 ### 排查「回复区空白」
 
@@ -88,10 +94,10 @@ node tests/render-e2e.mjs    # 端到端渲染验证（16 项，防回复区空�
 排查顺序：
 
 1. 打开 DevTools Console，看有没有 `slot entry crashed in 'conversation.chat.node'`
-2. 跑 `node tests/render-e2e.mjs` —— 它用按宿主行为写的假 `MarkdownText` 复现
-3. 跑 `node tests/check-seam.mjs` —— 检查宿主契约是否跑偏
-4. 跑 `node tests/mutation-test.mjs` —— 确认自检断言本身不是假绿
-| `package.json` / `cordis.patch.yml` | **必须重启 DSH 进程** |
+2. 跑 `node tests/register-seam.mjs` —— 注册期崩溃（空白最常见根因，含历史版复现）
+3. 跑 `node tests/render-e2e.mjs` —— 它用按宿主行为写的假 `MarkdownText` 复现
+4. 跑 `node tests/check-seam.mjs` —— 检查宿主契约是否跑偏
+5. 跑 `node tests/mutation-test.mjs` —— 确认自检断言本身不是假绿
 
 DevTools Network 里能看到 `/plugins/dsh-rich-response/client.js` 这个请求。
 
@@ -133,12 +139,9 @@ ctx.slots.register(
   {
     name: 'conversation.chat.node',
     key: 'assistant-step',
-    locale: 'conversation',
+    locale: 'chat',
     priority: -10,
-    children: {
-      'conversation.chat.reasoning.body': { kind: 'single', scope: 'session' },
-      'conversation.chat.message.images': { kind: 'single', scope: 'session' },
-    },
+    // 不要写 children —— 子 slot 的声明权是独占的
   },
   RichResponseView,
 )
@@ -148,9 +151,21 @@ ctx.slots.register(
 
 `priority: -10` 遮蔽内置渲染器（内置为 0）。停用插件即恢复宿主默认。
 
-`children` 与 `locale` 必须与内置声明一致 —— 少了 `children`，宿主会抛
-`slot 'X' is not declared by this entry's children`，推理块和图片块直接崩；
-少了 `locale` 则拿不到 `t` 翻译函数。
+`locale` 必须是 `'chat'`。写成 `'conversation'` 匹配不上，拿不到 `t` 翻译函数。
+
+**不要声明 `children`。** 子 slot 的声明权是独占的：内置 `assistant-step` entry 已经声明了
+`conversation.chat.reasoning.body` 和 `conversation.chat.message.images`，再声明一次会在**注册期**抛
+
+```
+slot "conversation.chat.reasoning.body" is already declared (by an entry in "conversation.chat.node" (...))
+```
+
+于是这个 slot 没有任何可用渲染器，宿主 `SlotErrorBoundary` 把每条助手回复渲染成空 div ——
+现象是「回复区整片空白，侧栏和输入框一切正常」（2026-11-05 真实事故，根因即此）。
+代价是拿不到 `renderSlot`，所以推理块和图片块需要自己画。
+
+`factory` 的返回值同样有约定：宿主把它当「切换会话时的 dispose 回调」，
+**必须返回空函数 `() => {}`**。返回 `register` 的注销句柄，会让插件在切换一次会话后永久失效（实测踩过）。
 
 **降级路径走宿主渲染器**，不自己实现 markdown 渲染：
 
@@ -191,10 +206,8 @@ if (block.level >= 2) {
 │   ├── parser-reference.ts   # 解析器（TS 参考实现）
 │   └── rich-response.css     # 样式
 ├── scripts/build.mjs         # 构建脚本
-├── tests/
-│   ├── parser-test.mjs       # 协议用例集
-│   ├── verify-build.mjs      # 产物一致性检查
-│   └── check-seam.mjs        # 宿主接缝自检
+├── tests/                    # 8 套：parser / semantic / verify-build / check-seam
+│                             #      register-seam / host-half / mutation / render-e2e
 ├── skills/rich-response/     # 内容层 skill
 ├── protocol/                   # 协议规范
 └── docs/                      # 技术方案 + 宿主契约
