@@ -263,11 +263,18 @@
   color: var(--rr-muted);
 }
 
-/* ── 对比表：透明表头 + 一条实线，不铺灰 ─────────────────── */
+/* ── 对比表：圆角描边框 + 浅色表头带，宽表在框内横向滚动 ──── */
+
+.rr-table-block {
+  min-width: 0;
+}
 
 .rr-table-wrap {
   overflow-x: auto;
+  overflow-y: hidden;
   color: var(--rr-text);
+  border: 1px solid var(--rr-line);
+  border-radius: 10px;
 }
 
 .rr-table-title {
@@ -291,7 +298,7 @@
   font-size: 11px;
   letter-spacing: 0.06em;
   padding: 8px 12px;
-  background: transparent;
+  background: var(--rr-surface);
   color: var(--rr-muted);
   border-bottom: 1.5px solid var(--rr-line-strong);
 }
@@ -325,12 +332,14 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--rr-text);
+  /* 真机反馈：标题与第一个序号徽标贴在一起，给行间留白 */
+  margin-bottom: 12px;
 }
 
 .rr-steps-sub {
   font-size: 12px;
   color: var(--rr-muted);
-  margin-top: 4px;
+  margin-top: 0;
   margin-bottom: 14px;
 }
 

@@ -1106,30 +1106,34 @@ window.__ModuleLoader__.load({
       const [head, ...body] = rows
       return createElement(
         'div',
-        { className: 'rr-table-wrap' },
+        { className: 'rr-table-block' },
         block.attrs.title
           ? createElement('div', { className: 'rr-table-title' }, renderInline(block.attrs.title))
           : null,
         createElement(
-          'table',
-          { className: 'rr-table' },
+          'div',
+          { className: 'rr-table-wrap' },
           createElement(
-            'thead',
-            null,
+            'table',
+            { className: 'rr-table' },
             createElement(
-              'tr',
+              'thead',
               null,
-              head.map((c, i) => createElement('th', { key: i }, renderInline(c))),
-            ),
-          ),
-          createElement(
-            'tbody',
-            null,
-            body.map((row, ri) =>
               createElement(
                 'tr',
-                { key: ri },
-                row.map((c, ci) => createElement('td', { key: ci }, renderInline(c))),
+                null,
+                head.map((c, i) => createElement('th', { key: i }, renderInline(c))),
+              ),
+            ),
+            createElement(
+              'tbody',
+              null,
+              body.map((row, ri) =>
+                createElement(
+                  'tr',
+                  { key: ri },
+                  row.map((c, ci) => createElement('td', { key: ci }, renderInline(c))),
+                ),
               ),
             ),
           ),
