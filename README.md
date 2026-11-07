@@ -1,5 +1,8 @@
 # dsh-rich-response
 
+> [!WARNING]
+> **🚧 调试中，请勿下载。**
+
 > 把 DeepSeek Harness 的回复从一大坨纯文本，变成可扫读、有语义色块的卡片。
 
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-%3E%3D0.2.1--rc.2-534AB7)](https://deepseek.com/harness/en)
